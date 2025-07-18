@@ -3,7 +3,7 @@
     "name": "adzan-tv",
     "slug": "adzan-tv",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "landscape",
     "icon": "./assets/images/icon.png",
     "scheme": "adzantv",
     "userInterfaceStyle": "automatic",
