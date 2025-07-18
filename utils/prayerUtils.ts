@@ -2,22 +2,25 @@ export interface PrayerTime {
     name: string;
     time: string;
     arabicName: string;
+    audioFile?: string;
 }
 
 export const prayerTimes: PrayerTime[] = [
-    { name: 'Subuh', time: '04:45', arabicName: 'الفجر' },
-    { name: 'Dzuhur', time: '12:15', arabicName: 'الظهر' },
-    { name: 'Ashar', time: '15:30', arabicName: 'العصر' },
-    { name: 'Maghrib', time: '18:45', arabicName: 'المغرب' },
-    { name: 'Isya', time: '20:00', arabicName: 'العشاء' },
+    { name: 'Subuh', time: '04:45', arabicName: 'الفجر', audioFile: 'adzan_subuh.mp3' },
+    { name: 'Dzuhur', time: '12:15', arabicName: 'الظهر', audioFile: 'adzan.mp3' },
+    { name: 'Ashar', time: '15:30', arabicName: 'العصر', audioFile: 'adzan.mp3' },
+    { name: 'Maghrib', time: '18:45', arabicName: 'المغرب', audioFile: 'adzan.mp3' },
+    { name: 'Isya', time: '20:00', arabicName: 'العشاء', audioFile: 'adzan.mp3' },
 ];
 
 export const getCurrentPrayerStatus = (currentTime: Date): {
     current: PrayerTime | null;
     next: PrayerTime | null;
     countdown: string;
+    shouldPlayAdzan: boolean;
 } => {
     const now = currentTime.getHours() * 60 + currentTime.getMinutes();
+    const currentSeconds = currentTime.getSeconds();
 
     const timesInMinutes = prayerTimes.map(prayer => {
         const [hours, minutes] = prayer.time.split(':').map(Number);
@@ -27,6 +30,15 @@ export const getCurrentPrayerStatus = (currentTime: Date): {
     // Find current and next prayer
     let current: PrayerTime | null = null;
     let next: (PrayerTime & { totalMinutes: number }) | null = null;
+    let shouldPlayAdzan = false;
+
+    // Check if we should play adzan (at exact prayer time with seconds 0-5)
+    for (const prayer of timesInMinutes) {
+        if (now === prayer.totalMinutes && currentSeconds <= 5) {
+            shouldPlayAdzan = true;
+            break;
+        }
+    }
 
     for (let i = 0; i < timesInMinutes.length; i++) {
         const prayer = timesInMinutes[i];
@@ -62,5 +74,5 @@ export const getCurrentPrayerStatus = (currentTime: Date): {
         }
     }
 
-    return { current, next, countdown };
+    return { current, next, countdown, shouldPlayAdzan };
 };
