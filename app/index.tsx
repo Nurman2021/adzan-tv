@@ -1,7 +1,7 @@
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { adzanAudio } from '@/utils/audioUtils';
 import { getIslamicDate } from '@/utils/islamicUtils';
-import { getCurrentPrayerStatus, prayerTimes } from '@/utils/prayerUtils';
+import { getCurrentPrayerStatus, getSyurukInfo, isSubuhTimeValid, isRestPeriod, prayerTimes } from '@/utils/prayerUtils';
 import { getRandomQuote, Quote } from '@/utils/quoteUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -33,6 +33,7 @@ export default function AdzanTVScreen(): React.JSX.Element {
     const [mosqueName, setMosqueName] = useState('MASJID AL-HIDAYAH');
     const [mosqueAddress, setMosqueAddress] = useState('Jl. Merdeka No. 123, Jakarta Pusat');
     const [isAdzanPlaying, setIsAdzanPlaying] = useState(false);
+    const [showSyurukInfo, setShowSyurukInfo] = useState(false);
 
     // Ref to track if adzan has been played for current prayer time
     const lastAdzanTime = useRef<string>('');
@@ -234,32 +235,44 @@ export default function AdzanTVScreen(): React.JSX.Element {
                         {/* Prayer times section */}
                         <View style={styles.prayerTimesContainer}>
                             <Text style={styles.prayerTimesTitle}>Jadwal Sholat</Text>
+                            
+                            {/* Info untuk periode istirahat */}
+                            {isRestPeriod(currentTime) && (
+                                <Text style={styles.restPeriodInfo}>
+                                    ⏰ Periode Istirahat - Menunggu Dzuhur
+                                </Text>
+                            )}
+                            
                             <View style={styles.prayerTimesList}>
                                 {prayerTimes.map((prayer, index) => (
                                     <React.Fragment key={index}>
                                         <View
                                             style={[
                                                 styles.prayerTimeItem,
-                                                prayerStatus.current?.name === prayer.name && styles.currentPrayerItem
+                                                prayerStatus.current?.name === prayer.name && styles.currentPrayerItem,
+                                                prayer.isInfoOnly && styles.infoPrayerItem // Style khusus untuk Syuruk
                                             ]}
                                         >
                                             <View style={styles.prayerNameContainer}>
                                                 <Text style={[
                                                     styles.prayerName,
-                                                    prayerStatus.current?.name === prayer.name && styles.currentPrayerText
+                                                    prayerStatus.current?.name === prayer.name && styles.currentPrayerText,
+                                                    prayer.isInfoOnly && styles.infoPrayerText
                                                 ]}>
                                                     {prayer.name}
                                                 </Text>
                                                 <Text style={[
                                                     styles.prayerArabic,
-                                                    prayerStatus.current?.name === prayer.name && styles.currentPrayerText
+                                                    prayerStatus.current?.name === prayer.name && styles.currentPrayerText,
+                                                    prayer.isInfoOnly && styles.infoPrayerText
                                                 ]}>
                                                     {prayer.arabicName}
                                                 </Text>
                                             </View>
                                             <Text style={[
                                                 styles.prayerTime,
-                                                prayerStatus.current?.name === prayer.name && styles.currentPrayerText
+                                                prayerStatus.current?.name === prayer.name && styles.currentPrayerText,
+                                                prayer.isInfoOnly && styles.infoPrayerText
                                             ]}>
                                                 {prayer.time}
                                             </Text>
@@ -512,6 +525,24 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 3,
     },
+    restPeriodInfo: {
+        fontSize: 12,
+        color: '#FFD700',
+        marginBottom: 10,
+        textAlign: 'center',
+        textShadowColor: 'rgba(0, 0, 0, 0.8)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3,
+    },
+    syurukInfo: {
+        fontSize: 12,
+        color: '#FFD700',
+        marginBottom: 10,
+        textAlign: 'center',
+        textShadowColor: 'rgba(0, 0, 0, 0.8)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3,
+    },
     prayerTimesList: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -542,6 +573,9 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
     },
+    infoPrayerItem: {
+        backgroundColor: 'rgba(255, 193, 7, 0.8)', // Yellow color for info-only prayers
+    },
     prayerNameContainer: {
         alignItems: 'center',
     },
@@ -565,6 +599,10 @@ const styles = StyleSheet.create({
     },
     currentPrayerText: {
         color: '#fff',
+        fontWeight: 'bold',
+    },
+    infoPrayerText: {
+        color: '#000',
         fontWeight: 'bold',
     },
     prayerTime: {
