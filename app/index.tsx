@@ -6,15 +6,24 @@ import { getRandomQuote, Quote } from '@/utils/quoteUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, ImageBackground, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    ImageBackground,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    type ImageSourcePropType
+} from 'react-native';
 
-const backgroundImages = {
+const backgroundImages: Record<string, ImageSourcePropType> = {
     'abu-dabhi': require('@/assets/images/abu-dabhi.jpg'),
     'abu-dabhi-2': require('@/assets/images/abu-dabhi-2.jpg'),
     'turkey': require('@/assets/images/turkey.jpg'),
 };
 
-export default function AdzanTVScreen() {
+export default function AdzanTVScreen(): React.JSX.Element {
     const router = useRouter();
     const [selectedBackground, setSelectedBackground] = useState<keyof typeof backgroundImages>('abu-dabhi');
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -33,7 +42,7 @@ export default function AdzanTVScreen() {
         adzanAudio.initializeAudio();
 
         // Load saved preferences
-        const loadSettings = async () => {
+        const loadSettings = async (): Promise<void> => {
             try {
                 const savedBackground = await AsyncStorage.getItem('selectedBackground');
                 const savedMosqueName = await AsyncStorage.getItem('mosqueName');
@@ -92,7 +101,7 @@ export default function AdzanTVScreen() {
         };
     }, []);
 
-    const playAdzanForPrayer = async (prayer: any) => {
+    const playAdzanForPrayer = async (prayer: any): Promise<void> => {
         try {
             console.log(`Playing adzan for ${prayer.name}`);
             await adzanAudio.playAdzan(prayer.audioFile || 'adzan.mp3', prayer.name);
@@ -115,7 +124,7 @@ export default function AdzanTVScreen() {
     // Reload settings when returning from settings page
     useFocusEffect(
         React.useCallback(() => {
-            const loadSettings = async () => {
+            const loadSettings = async (): Promise<void> => {
                 try {
                     const savedBackground = await AsyncStorage.getItem('selectedBackground');
                     const savedMosqueName = await AsyncStorage.getItem('mosqueName');
@@ -138,14 +147,14 @@ export default function AdzanTVScreen() {
         }, [])
     );
 
-    const formatTime = (date: Date) => {
+    const formatTime = (date: Date): string => {
         const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
         const seconds = date.getSeconds().toString().padStart(2, '0');
         return `${hours}:${minutes}:${seconds}`;
     };
 
-    const formatDate = (date: Date) => {
+    const formatDate = (date: Date): string => {
         return date.toLocaleDateString('id-ID', {
             weekday: 'long',
             year: 'numeric',
@@ -154,7 +163,7 @@ export default function AdzanTVScreen() {
         });
     };
 
-    const handleSettingsPress = () => {
+    const handleSettingsPress = (): void => {
         router.push('/settings');
     };
 
